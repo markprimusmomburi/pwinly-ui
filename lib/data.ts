@@ -112,12 +112,12 @@ export type KanbanProject = {
   reviewers?: string[]
 }
 
-export const KANBAN_COLUMNS: { id: KanbanColumnId; color: string }[] = [
-  { id: "Preparing", color: "#9ca3af" },
-  { id: "Writing", color: "#3B82F6" },
-  { id: "Formal Review", color: "#D946EF" },
-  { id: "Submitted", color: "#10B981" },
-  { id: "Won", color: "#D946EF" },
+export const KANBAN_COLUMNS: { id: KanbanColumnId; status: ProjectStatus }[] = [
+  { id: "Preparing", status: "Preparing" },
+  { id: "Writing", status: "Writing" },
+  { id: "Formal Review", status: "In Review" },
+  { id: "Submitted", status: "Submitted" },
+  { id: "Won", status: "Won" },
 ]
 
 export const KANBAN_PROJECTS: KanbanProject[] = [
@@ -141,6 +141,22 @@ export const KANBAN_PROJECTS: KanbanProject[] = [
   { id: "k-langley", name: "Langley Street Development", column: "Won", owners: ["LT"] },
   { id: "k-marsden", name: "Marsden Court Estate", column: "Won", owners: ["AD"] },
 ]
+
+/* Resolve a project by id from either the standard list or the Kanban board,
+   normalising Kanban entries (which key off a column) into the Project shape. */
+export function getProjectById(id: string): Project | undefined {
+  const direct = PROJECTS.find((p) => p.id === id)
+  if (direct) return direct
+  const k = KANBAN_PROJECTS.find((p) => p.id === id)
+  if (!k) return undefined
+  const col = KANBAN_COLUMNS.find((c) => c.id === k.column)
+  return { id: k.id, name: k.name, private: true, status: col?.status ?? "Preparing" }
+}
+
+/* Map a Kanban column to its canonical project status. */
+export function statusForColumn(column: KanbanColumnId): ProjectStatus {
+  return KANBAN_COLUMNS.find((c) => c.id === column)?.status ?? "Preparing"
+}
 
 export const ANSWER_BANK: AnswerEntry[] = [
   {
