@@ -96,6 +96,68 @@ export const PROJECTS: Project[] = [
   { id: "p-lms", name: "LMS Blog", private: false, status: "Preparing" },
 ]
 
+export type KanbanColumnId =
+  | "Preparing"
+  | "Writing"
+  | "Formal Review"
+  | "Submitted"
+  | "Won"
+
+export type KanbanProject = {
+  id: string
+  name: string
+  column: KanbanColumnId
+  owners: string[]
+  ownerOverflow?: number
+  reviewers?: string[]
+}
+
+export const KANBAN_COLUMNS: { id: KanbanColumnId; status: ProjectStatus }[] = [
+  { id: "Preparing", status: "Preparing" },
+  { id: "Writing", status: "Writing" },
+  { id: "Formal Review", status: "In Review" },
+  { id: "Submitted", status: "Submitted" },
+  { id: "Won", status: "Won" },
+]
+
+export const KANBAN_PROJECTS: KanbanProject[] = [
+  { id: "k-cheshire", name: "Cheshire Building Development Proposal", column: "Preparing", owners: ["LT"] },
+  { id: "k-fullerton", name: "Fullerton Parking Development", column: "Preparing", owners: ["LT"] },
+  { id: "k-pettiford", name: "Pettiford Avenue Clarkedale Corp", column: "Preparing", owners: ["LT"] },
+  { id: "k-leavendon", name: "Leavendon Corp", column: "Preparing", owners: ["LT"] },
+  { id: "k-cawdor", name: "Cawdor Lane Holdings", column: "Preparing", owners: ["AD"] },
+
+  { id: "k-billingsgate", name: "Billingsgate Maintenance", column: "Writing", owners: ["LT"] },
+  { id: "k-limegrove", name: "Lime Grove Industries", column: "Writing", owners: ["LT"] },
+  { id: "k-harborne", name: "Harborne Quarter Regeneration", column: "Writing", owners: ["JB", "LT"] },
+
+  { id: "k-buildproduct", name: "Build And Product", column: "Formal Review", owners: ["LT", "AD", "JB"], ownerOverflow: 8, reviewers: ["JB"] },
+  { id: "k-mabel", name: "Mabel Lane Recreation Centre", column: "Formal Review", owners: ["LT"], reviewers: ["AD"] },
+  { id: "k-minton", name: "Minton Street Centre", column: "Formal Review", owners: ["LT"] },
+
+  { id: "k-liberty", name: "No. 42 Liberty Road", column: "Submitted", owners: ["LT"] },
+  { id: "k-clifton", name: "Clifton Grange", column: "Submitted", owners: ["LT"] },
+
+  { id: "k-langley", name: "Langley Street Development", column: "Won", owners: ["LT"] },
+  { id: "k-marsden", name: "Marsden Court Estate", column: "Won", owners: ["AD"] },
+]
+
+/* Resolve a project by id from either the standard list or the Kanban board,
+   normalising Kanban entries (which key off a column) into the Project shape. */
+export function getProjectById(id: string): Project | undefined {
+  const direct = PROJECTS.find((p) => p.id === id)
+  if (direct) return direct
+  const k = KANBAN_PROJECTS.find((p) => p.id === id)
+  if (!k) return undefined
+  const col = KANBAN_COLUMNS.find((c) => c.id === k.column)
+  return { id: k.id, name: k.name, private: true, status: col?.status ?? "Preparing" }
+}
+
+/* Map a Kanban column to its canonical project status. */
+export function statusForColumn(column: KanbanColumnId): ProjectStatus {
+  return KANBAN_COLUMNS.find((c) => c.id === column)?.status ?? "Preparing"
+}
+
 export const ANSWER_BANK: AnswerEntry[] = [
   {
     id: "a-1",
